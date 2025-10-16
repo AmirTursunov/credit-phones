@@ -4,12 +4,14 @@ import Phone from "../../../models/Phone";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // 🔥 Promise
 ) {
   try {
     await connectDB();
+    const { id } = await params; // 🔥 await
     const body = await request.json();
-    const phone = await Phone.findByIdAndUpdate(params.id, body, { new: true });
+
+    const phone = await Phone.findByIdAndUpdate(id, body, { new: true });
 
     if (!phone) {
       return NextResponse.json(
@@ -19,13 +21,9 @@ export async function PUT(
     }
 
     return NextResponse.json({ success: true, data: phone });
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Maʼlumotni yangilashda xatolik yuz berdi";
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: error.message },
       { status: 400 }
     );
   }
@@ -33,11 +31,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // 🔥 Promise
 ) {
   try {
     await connectDB();
-    const phone = await Phone.findByIdAndDelete(params.id);
+    const { id } = await params; // 🔥 await
+    const phone = await Phone.findByIdAndDelete(id);
 
     if (!phone) {
       return NextResponse.json(
@@ -47,13 +46,9 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Oʻchirish jarayonida xatolik yuz berdi";
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: error.message },
       { status: 400 }
     );
   }

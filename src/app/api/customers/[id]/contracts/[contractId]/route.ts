@@ -5,18 +5,15 @@ import Customer from "../../../../../models/Customer";
 // Shartnomani yangilash
 export async function PUT(
   request: NextRequest,
-  context: {
-    params:
-      | { id: string; contractId: string }
-      | Promise<{ id: string; contractId: string }>;
-  }
+  { params }: { params: Promise<{ id: string; contractId: string }> } // 🔥 Promise
 ) {
   try {
-    const params = await context.params; // paramsni await qilamiz
     await connectDB();
+    const { id, contractId } = await params; // 🔥 await
     const body = await request.json();
 
-    const customer = await Customer.findById(params.id);
+    const customer = await Customer.findById(id);
+
     if (!customer) {
       return NextResponse.json(
         { success: false, error: "Mijoz topilmadi" },
@@ -25,8 +22,9 @@ export async function PUT(
     }
 
     const contractIndex = customer.contracts.findIndex(
-      (contract) => contract._id?.toString() === params.contractId
+      (contract) => contract._id?.toString() === contractId
     );
+
     if (contractIndex === -1) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
@@ -37,7 +35,7 @@ export async function PUT(
     customer.contracts[contractIndex] = {
       ...customer.contracts[contractIndex],
       ...body,
-      _id: customer.contracts[contractIndex]._id, // ID ni saqlab qolish
+      _id: customer.contracts[contractIndex]._id,
     };
 
     await customer.save();
@@ -46,30 +44,25 @@ export async function PUT(
       success: true,
       data: customer.contracts[contractIndex],
     });
-  } catch (error: unknown) {
-    const errMsg =
-      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: errMsg },
+      { success: false, error: error.message },
       { status: 400 }
     );
   }
 }
 
-// Shartnomani o‘chirish
+// Shartnomani o'chirish
 export async function DELETE(
   request: NextRequest,
-  context: {
-    params:
-      | { id: string; contractId: string }
-      | Promise<{ id: string; contractId: string }>;
-  }
+  { params }: { params: Promise<{ id: string; contractId: string }> } // 🔥 Promise
 ) {
   try {
-    const params = await context.params;
     await connectDB();
+    const { id, contractId } = await params; // 🔥 await
 
-    const customer = await Customer.findById(params.id);
+    const customer = await Customer.findById(id);
+
     if (!customer) {
       return NextResponse.json(
         { success: false, error: "Mijoz topilmadi" },
@@ -78,8 +71,9 @@ export async function DELETE(
     }
 
     const contractIndex = customer.contracts.findIndex(
-      (contract) => contract._id?.toString() === params.contractId
+      (contract) => contract._id?.toString() === contractId
     );
+
     if (contractIndex === -1) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
@@ -92,13 +86,11 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: "Shartnoma o‘chirildi",
+      message: "Shartnoma o'chirildi",
     });
-  } catch (error: unknown) {
-    const errMsg =
-      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: errMsg },
+      { success: false, error: error.message },
       { status: 400 }
     );
   }
@@ -107,17 +99,14 @@ export async function DELETE(
 // Bitta shartnomani olish
 export async function GET(
   request: NextRequest,
-  context: {
-    params:
-      | { id: string; contractId: string }
-      | Promise<{ id: string; contractId: string }>;
-  }
+  { params }: { params: Promise<{ id: string; contractId: string }> } // 🔥 Promise
 ) {
   try {
-    const params = await context.params;
     await connectDB();
+    const { id, contractId } = await params; // 🔥 await
 
-    const customer = await Customer.findById(params.id);
+    const customer = await Customer.findById(id);
+
     if (!customer) {
       return NextResponse.json(
         { success: false, error: "Mijoz topilmadi" },
@@ -126,8 +115,9 @@ export async function GET(
     }
 
     const contract = customer.contracts.find(
-      (contract) => contract._id?.toString() === params.contractId
+      (contract) => contract._id?.toString() === contractId
     );
+
     if (!contract) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
@@ -135,12 +125,13 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, data: contract });
-  } catch (error: unknown) {
-    const errMsg =
-      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
+    return NextResponse.json({
+      success: true,
+      data: contract,
+    });
+  } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: errMsg },
+      { success: false, error: error.message },
       { status: 400 }
     );
   }
