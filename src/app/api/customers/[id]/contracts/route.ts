@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "../../../../lib/mongodb";
 import Customer from "../../../../models/Customer";
 
+interface Params {
+  params: {
+    id: string;
+  };
+}
+
 // Yangi shartnoma qo‘shish
-export async function POST(
-  request: NextRequest,
-  context: { params: { id: string } } // <-- bu yerda Promise olib tashlandi
-) {
+export async function POST(request: NextRequest, { params }: Params) {
   try {
     await connectDB();
-
     const body = await request.json();
-    const customer = await Customer.findById(context.params.id); // params.id
+
+    const customer = await Customer.findById(params.id);
 
     if (!customer) {
       return NextResponse.json(
