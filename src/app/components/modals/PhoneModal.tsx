@@ -65,7 +65,7 @@ export default function PhoneModal({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              Narxi (so'm) *
+              Narxi (so&apos;m) *
             </label>
             <input
               name="price"

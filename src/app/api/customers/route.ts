@@ -7,9 +7,11 @@ export async function GET() {
     await connectDB();
     const customers = await Customer.find({}).sort({ createdAt: -1 });
     return NextResponse.json({ success: true, data: customers });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 500 }
     );
   }
@@ -24,9 +26,11 @@ export async function POST(request: NextRequest) {
       { success: true, data: customer },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }

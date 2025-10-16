@@ -89,7 +89,7 @@ export default function PhonesTab({
                     minimumFractionDigits: 1,
                     maximumFractionDigits: 1,
                   })}{" "}
-                  mln so'm
+                  mln so&apos;m
                 </span>
               </div>
               <div className="flex justify-between">

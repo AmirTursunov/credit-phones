@@ -30,7 +30,6 @@ export async function PUT(
       );
     }
 
-    // Shartnomani yangilash
     customer.contracts[contractIndex] = {
       ...customer.contracts[contractIndex],
       ...body,
@@ -43,15 +42,17 @@ export async function PUT(
       success: true,
       data: customer.contracts[contractIndex],
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }
 }
 
-// Shartnomani o'chirish
+// Shartnomani o‘chirish
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string; contractId: string } }
@@ -78,23 +79,24 @@ export async function DELETE(
       );
     }
 
-    // Shartnomani o'chirish
     customer.contracts.splice(contractIndex, 1);
     await customer.save();
 
     return NextResponse.json({
       success: true,
-      message: "Shartnoma o'chirildi",
+      message: "Shartnoma o‘chirildi",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }
 }
 
-// Bitta shartnomani olish (opsional)
+// Bitta shartnomani olish
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string; contractId: string } }
@@ -121,13 +123,12 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: contract,
-    });
-  } catch (error: any) {
+    return NextResponse.json({ success: true, data: contract });
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }

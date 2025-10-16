@@ -6,6 +6,7 @@ import connectDB from "../../lib/mongodb";
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+
     const {
       customerEmail,
       customerName,
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
       customerId,
       contractId,
     } = await request.json();
+
     const result = await sendPaymentReminder(
       customerEmail,
       customerName,
@@ -22,6 +24,7 @@ export async function POST(request: NextRequest) {
       amount,
       paymentDate
     );
+
     if (result.success) {
       await PaymentNotification.create({
         customerId,
@@ -32,10 +35,13 @@ export async function POST(request: NextRequest) {
         sentAt: new Date(),
       });
     }
+
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Serverda xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: message },
       { status: 500 }
     );
   }

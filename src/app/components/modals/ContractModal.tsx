@@ -1,7 +1,3 @@
-// ============================================================================
-// TUZATILGAN ContractModal - app/components/modals/ContractModal.tsx
-// ============================================================================
-
 import React from "react";
 import { X } from "lucide-react";
 import { IPhone, ICustomer, IContract } from "../../types";
@@ -73,7 +69,7 @@ export default function ContractModal({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Umumiy Narx (so'm) *
+              Umumiy Narx (so&apos;m) *
             </label>
             <input
               name="price"
@@ -87,7 +83,7 @@ export default function ContractModal({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Boshlang'ich To'lov (so'm) *
+              Boshlang&apos;ich To&apos;lov (so&apos;m) *
             </label>
             <input
               name="downPayment"
@@ -101,7 +97,7 @@ export default function ContractModal({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Oylik To'lov (so'm) *
+              Oylik To&apos;lov (so&apos;m) *
             </label>
             <input
               name="monthlyPayment"
@@ -132,7 +128,7 @@ export default function ContractModal({
           {mode === "edit" && (
             <div>
               <label className="block text-sm font-medium mb-1">
-                To'langan Oylar (0-{contract?.months || 0})
+                To&apos;langan Oylar (0-{contract?.months || 0})
               </label>
               <input
                 name="paidMonths"
@@ -148,7 +144,7 @@ export default function ContractModal({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              To'lov Kuni (1-28) *
+              To&apos;lov Kuni (1-28) *
             </label>
             <input
               name="paymentDay"

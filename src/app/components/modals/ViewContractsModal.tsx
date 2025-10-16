@@ -1,7 +1,3 @@
-// ============================================================================
-// TUZATILGAN ViewContractsModal - app/components/modals/ViewContractsModal.tsx
-// ============================================================================
-
 import React, { useEffect } from "react";
 import { X, Edit2, Trash2 } from "lucide-react";
 import { ICustomer, IContract } from "../../types";
@@ -22,7 +18,6 @@ export default function ViewContractsModal({
   customer,
   onEditContract,
   onDeleteContract,
-  fetchData,
   setSelectedCustomer,
 }: Props) {
   // Customer ma'lumotlarini yangilash
@@ -153,18 +148,21 @@ export default function ViewContractsModal({
                   </div>
                 </div>
 
-                {/* Ma'lumotlar */}
+                {/* Ma&apos;lumotlar */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                   <div>
-                    <p className="text-gray-600">Boshlang'ich to'lov:</p>
+                    <p className="text-gray-600">
+                      Boshlang&apos;ich to&apos;lov:
+                    </p>
                     <p className="font-semibold text-black">
-                      {(contract.downPayment / 1000000).toFixed(1)}M so'm
+                      {(contract.downPayment / 1000000).toFixed(1)}M so&apos;m
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Oylik to'lov:</p>
+                    <p className="text-gray-600">Oylik to&apos;lov:</p>
                     <p className="font-semibold text-black">
-                      {(contract.monthlyPayment / 1000000).toFixed(1)}M so'm
+                      {(contract.monthlyPayment / 1000000).toFixed(1)}M
+                      so&apos;m
                     </p>
                   </div>
                   <div>
@@ -174,7 +172,7 @@ export default function ViewContractsModal({
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">To'langan:</p>
+                    <p className="text-gray-600">To&apos;langan:</p>
                     <p className="font-semibold text-lg text-green-600">
                       {contract.paidMonths} / {contract.months} oy
                     </p>
@@ -186,17 +184,17 @@ export default function ViewContractsModal({
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Keyingi to'lov:</p>
+                    <p className="text-gray-600">Keyingi to&apos;lov:</p>
                     <p className="font-semibold text-black">
                       {contract.paidMonths < contract.months
                         ? new Date(contract.nextPaymentDate).toLocaleDateString(
                             "uz-UZ"
                           )
-                        : "To'landi"}
+                        : "To&apos;landi"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">To'lov kuni:</p>
+                    <p className="text-gray-600">To&apos;lov kuni:</p>
                     <p className="font-semibold text-black">
                       Har oyning {contract.paymentDay}-sanasi
                     </p>
@@ -212,7 +210,9 @@ export default function ViewContractsModal({
                 {/* Progress bar */}
                 <div className="mb-4 pb-4 border-b">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-600">To'lov jarayoni</p>
+                    <p className="text-sm text-gray-600">
+                      To&apos;lov jarayoni
+                    </p>
                     <p className="text-sm font-medium text-black">
                       {Math.round(
                         (contract.paidMonths / contract.months) * 100
@@ -232,29 +232,31 @@ export default function ViewContractsModal({
                   </div>
                 </div>
 
-                {/* Qolgan to'lov summasi */}
+                {/* Qolgan to&apos;lov summasi */}
                 <div className="bg-blue-50 p-3 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-600">Qolgan to'lov:</p>
+                      <p className="text-sm text-gray-600">
+                        Qolgan to&apos;lov:
+                      </p>
                       <p className="text-xl font-bold text-blue-600">
                         {(
                           ((contract.months - contract.paidMonths) *
                             contract.monthlyPayment) /
                           1000000
                         ).toFixed(1)}
-                        M so'm
+                        M so&apos;m
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">To'langan:</p>
+                      <p className="text-sm text-gray-600">To&apos;langan:</p>
                       <p className="text-xl font-bold text-green-600">
                         {(
                           (contract.downPayment +
                             contract.paidMonths * contract.monthlyPayment) /
                           1000000
                         ).toFixed(1)}
-                        M so'm
+                        M so&apos;m
                       </p>
                     </div>
                   </div>
@@ -263,7 +265,9 @@ export default function ViewContractsModal({
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-8">Shartnomalar yo'q</p>
+          <p className="text-center text-gray-500 py-8">
+            Shartnomalar yo&apos;q
+          </p>
         )}
       </div>
     </div>

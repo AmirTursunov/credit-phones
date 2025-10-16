@@ -10,15 +10,22 @@ export async function PUT(
     await connectDB();
     const body = await request.json();
     const phone = await Phone.findByIdAndUpdate(params.id, body, { new: true });
-    if (!phone)
+
+    if (!phone) {
       return NextResponse.json(
         { success: false, error: "Topilmadi" },
         { status: 404 }
       );
+    }
+
     return NextResponse.json({ success: true, data: phone });
-  } catch (error: any) {
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Maʼlumotni yangilashda xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: message },
       { status: 400 }
     );
   }
@@ -31,15 +38,22 @@ export async function DELETE(
   try {
     await connectDB();
     const phone = await Phone.findByIdAndDelete(params.id);
-    if (!phone)
+
+    if (!phone) {
       return NextResponse.json(
         { success: false, error: "Topilmadi" },
         { status: 404 }
       );
+    }
+
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Oʻchirish jarayonida xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: message },
       { status: 400 }
     );
   }

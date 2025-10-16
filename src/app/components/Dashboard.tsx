@@ -78,7 +78,7 @@ export default function Dashboard({
         <div className="flex items-center gap-2 mb-4">
           <AlertCircle className="w-6 h-6 text-red-500" />
           <h3 className="text-xl font-bold text-black">
-            Bugungi To'lovlar ({todayPayments.length})
+            Bugungi To&apos;lovlar ({todayPayments.length})
           </h3>
         </div>
         {todayPayments.length > 0 ? (
@@ -100,7 +100,7 @@ export default function Dashboard({
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-red-600">
-                    {(payment.amount / 1000000).toFixed(1)}M so'm
+                    {(payment.amount / 1000000).toFixed(1)}M so&apos;m
                   </p>
                   <button
                     onClick={() => handleSendEmail(payment)}
@@ -114,7 +114,9 @@ export default function Dashboard({
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">Bugun to'lov yo'q</p>
+          <p className="text-gray-500 text-center py-8">
+            Bugun to&apos;lov yo&apos;q
+          </p>
         )}
       </div>
     </div>

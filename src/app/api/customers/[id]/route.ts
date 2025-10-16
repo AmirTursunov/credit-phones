@@ -9,15 +9,20 @@ export async function GET(
   try {
     await connectDB();
     const customer = await Customer.findById(params.id);
-    if (!customer)
+
+    if (!customer) {
       return NextResponse.json(
-        { success: false, error: "Topilmadi" },
+        { success: false, error: "Mijoz topilmadi" },
         { status: 404 }
       );
+    }
+
     return NextResponse.json({ success: true, data: customer });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }
@@ -33,15 +38,20 @@ export async function PUT(
     const customer = await Customer.findByIdAndUpdate(params.id, body, {
       new: true,
     });
-    if (!customer)
+
+    if (!customer) {
       return NextResponse.json(
-        { success: false, error: "Topilmadi" },
+        { success: false, error: "Mijoz topilmadi" },
         { status: 404 }
       );
+    }
+
     return NextResponse.json({ success: true, data: customer });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }
@@ -54,15 +64,20 @@ export async function DELETE(
   try {
     await connectDB();
     const customer = await Customer.findByIdAndDelete(params.id);
-    if (!customer)
+
+    if (!customer) {
       return NextResponse.json(
-        { success: false, error: "Topilmadi" },
+        { success: false, error: "Mijoz topilmadi" },
         { status: 404 }
       );
+    }
+
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errMsg =
+      error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: errMsg },
       { status: 400 }
     );
   }
