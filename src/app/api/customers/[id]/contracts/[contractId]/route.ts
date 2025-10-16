@@ -5,13 +5,18 @@ import Customer from "../../../../../models/Customer";
 // Shartnomani yangilash
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; contractId: string } }
+  context: {
+    params:
+      | { id: string; contractId: string }
+      | Promise<{ id: string; contractId: string }>;
+  }
 ) {
   try {
+    const params = await context.params; // paramsni await qilamiz
     await connectDB();
     const body = await request.json();
-    const customer = await Customer.findById(params.id);
 
+    const customer = await Customer.findById(params.id);
     if (!customer) {
       return NextResponse.json(
         { success: false, error: "Mijoz topilmadi" },
@@ -22,7 +27,6 @@ export async function PUT(
     const contractIndex = customer.contracts.findIndex(
       (contract) => contract._id?.toString() === params.contractId
     );
-
     if (contractIndex === -1) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
@@ -55,12 +59,17 @@ export async function PUT(
 // Shartnomani o‘chirish
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; contractId: string } }
+  context: {
+    params:
+      | { id: string; contractId: string }
+      | Promise<{ id: string; contractId: string }>;
+  }
 ) {
   try {
+    const params = await context.params;
     await connectDB();
-    const customer = await Customer.findById(params.id);
 
+    const customer = await Customer.findById(params.id);
     if (!customer) {
       return NextResponse.json(
         { success: false, error: "Mijoz topilmadi" },
@@ -71,7 +80,6 @@ export async function DELETE(
     const contractIndex = customer.contracts.findIndex(
       (contract) => contract._id?.toString() === params.contractId
     );
-
     if (contractIndex === -1) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
@@ -99,12 +107,17 @@ export async function DELETE(
 // Bitta shartnomani olish
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; contractId: string } }
+  context: {
+    params:
+      | { id: string; contractId: string }
+      | Promise<{ id: string; contractId: string }>;
+  }
 ) {
   try {
+    const params = await context.params;
     await connectDB();
-    const customer = await Customer.findById(params.id);
 
+    const customer = await Customer.findById(params.id);
     if (!customer) {
       return NextResponse.json(
         { success: false, error: "Mijoz topilmadi" },
@@ -115,7 +128,6 @@ export async function GET(
     const contract = customer.contracts.find(
       (contract) => contract._id?.toString() === params.contractId
     );
-
     if (!contract) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
