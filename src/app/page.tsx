@@ -435,6 +435,7 @@ export default function HomePage() {
             stats={stats}
             todayPayments={todayPayments}
             handleSendEmail={handleSendEmail}
+            loading={loading}
           />
         )}
 

@@ -19,13 +19,23 @@ interface DashboardProps {
   };
   todayPayments: ITodayPayment[];
   handleSendEmail: (payment: ITodayPayment) => void;
+  loading?: boolean;
 }
 
 export default function Dashboard({
   stats,
   todayPayments,
   handleSendEmail,
+  loading,
 }: DashboardProps) {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
