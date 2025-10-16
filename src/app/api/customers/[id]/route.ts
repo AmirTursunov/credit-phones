@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "../../../lib/mongodb";
 import Customer from "../../../models/Customer";
 
+// Mijozni olish
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = context.params;
+
   try {
     await connectDB();
-    const customer = await Customer.findById(params.id);
+    const customer = await Customer.findById(id);
 
     if (!customer) {
       return NextResponse.json(
@@ -28,16 +31,17 @@ export async function GET(
   }
 }
 
+// Mijozni yangilash
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = context.params;
+
   try {
     await connectDB();
     const body = await request.json();
-    const customer = await Customer.findByIdAndUpdate(params.id, body, {
-      new: true,
-    });
+    const customer = await Customer.findByIdAndUpdate(id, body, { new: true });
 
     if (!customer) {
       return NextResponse.json(
@@ -57,13 +61,16 @@ export async function PUT(
   }
 }
 
+// Mijozni o‘chirish
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const { id } = context.params;
+
   try {
     await connectDB();
-    const customer = await Customer.findByIdAndDelete(params.id);
+    const customer = await Customer.findByIdAndDelete(id);
 
     if (!customer) {
       return NextResponse.json(

@@ -5,13 +5,13 @@ import Customer from "../../../../models/Customer";
 // Yangi shartnoma qo‘shish
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } } // <-- bu yerda Promise olib tashlandi
 ) {
   try {
     await connectDB();
 
     const body = await request.json();
-    const customer = await Customer.findById(params.id);
+    const customer = await Customer.findById(context.params.id); // params.id
 
     if (!customer) {
       return NextResponse.json(
