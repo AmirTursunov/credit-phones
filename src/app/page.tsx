@@ -1,103 +1,557 @@
-import Image from "next/image";
+// ============================================================================
+// FAYL 11: app/page.tsx - ASOSIY FAYL
+// ============================================================================
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect } from "react";
+import Header from "./components/Header";
+import Navigation from "./components/Navigation";
+import Dashboard from "./components/Dashboard";
+import PhonesTab from "./components/PhonesTab";
+import CustomersTab from "./components/CustomersTab";
+import PhoneModal from "./components/modals/PhoneModal";
+import CustomerModal from "./components/modals/CustomerModal";
+import ContractModal from "./components/modals/ContractModal";
+import ViewContractsModal from "./components/modals/ViewContractsModal";
+import { IPhone, ICustomer, IContract, ITodayPayment } from "./types";
+
+export default function HomePage() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [phones, setPhones] = useState<IPhone[]>([]);
+  const [customers, setCustomers] = useState<ICustomer[]>([]);
+  const [todayPayments, setTodayPayments] = useState<ITodayPayment[]>([]);
+  const [stats, setStats] = useState({
+    totalCustomers: 0,
+    activeContracts: 0,
+    totalRevenue: 0,
+    pendingPayments: 0,
+    totalPhones: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Modals state
+  const [showAddPhone, setShowAddPhone] = useState(false);
+  const [showEditPhone, setShowEditPhone] = useState(false);
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [showEditCustomer, setShowEditCustomer] = useState(false);
+  const [showAddContract, setShowAddContract] = useState(false);
+  const [showEditContract, setShowEditContract] = useState(false);
+  const [showViewContracts, setShowViewContracts] = useState(false);
+
+  // Selected items
+  const [selectedPhone, setSelectedPhone] = useState<IPhone | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(
+    null
+  );
+  const [selectedContract, setSelectedContract] = useState<IContract | null>(
+    null
+  );
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [phonesRes, customersRes, paymentsRes, statsRes] =
+        await Promise.all([
+          fetch("/api/telefon"),
+          fetch("/api/customers"),
+          fetch("/api/payments/today"),
+          fetch("/api/stats"),
+        ]);
+
+      const phonesData = await phonesRes.json();
+      const customersData = await customersRes.json();
+      const paymentsData = await paymentsRes.json();
+      const statsData = await statsRes.json();
+
+      if (phonesData.success) setPhones(phonesData.data);
+      if (customersData.success) setCustomers(customersData.data);
+      if (paymentsData.success) setTodayPayments(paymentsData.data);
+      if (statsData.success) setStats(statsData.data);
+    } catch (error) {
+      console.error("Ma'lumot yuklashda xatolik:", error);
+    }
+    setLoading(false);
+  };
+
+  // ========== TELEFON CRUD ==========
+  const handleAddPhone = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const phone = {
+      model: formData.get("model") as string,
+      brand: formData.get("brand") as string,
+      memory: formData.get("memory") as string,
+      price: Number(formData.get("price")),
+      stock: Number(formData.get("stock")),
+    };
+    console.log(phone.memory);
+    console.log(phone.brand);
+    try {
+      const res = await fetch("/api/telefon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(phone),
+      });
+      if (res.ok) {
+        setShowAddPhone(false);
+        fetchData();
+        alert("Telefon qo'shildi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  const handleEditPhone = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedPhone?._id) return;
+
+    const formData = new FormData(e.currentTarget);
+
+    const phone = {
+      model: formData.get("model") as string,
+      brand: formData.get("brand") as string,
+      memory: formData.get("memory") as string,
+      price: Number(formData.get("price")),
+      stock: Number(formData.get("stock")),
+    };
+
+    try {
+      const res = await fetch(`/api/telefon/${selectedPhone._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(phone),
+      });
+      if (res.ok) {
+        setShowEditPhone(false);
+        setSelectedPhone(null);
+        fetchData();
+        alert("Telefon yangilandi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  const handleDeletePhone = async (id: string) => {
+    if (!confirm("Rostdan ham o'chirmoqchimisiz?")) return;
+    try {
+      const res = await fetch(`/api/telefon/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchData();
+        alert("Telefon o'chirildi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  // ========== MIJOZ CRUD ==========
+  const handleAddCustomer = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const customer = {
+      name: formData.get("name") as string,
+      phone: formData.get("phone") as string,
+      email: formData.get("email") as string,
+      passport: formData.get("passport") as string,
+      address: formData.get("address") as string,
+      contracts: [],
+    };
+
+    try {
+      const res = await fetch("/api/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(customer),
+      });
+      if (res.ok) {
+        setShowAddCustomer(false);
+        fetchData();
+        alert("Mijoz qo'shildi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  const handleEditCustomer = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedCustomer?._id) return;
+
+    const formData = new FormData(e.currentTarget);
+    const customer = {
+      name: formData.get("name") as string,
+      phone: formData.get("phone") as string,
+      email: formData.get("email") as string,
+      passport: formData.get("passport") as string,
+      address: formData.get("address") as string,
+    };
+
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomer._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(customer),
+      });
+      if (res.ok) {
+        setShowEditCustomer(false);
+        setSelectedCustomer(null);
+        fetchData();
+        alert("Mijoz yangilandi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (
+      !confirm(
+        "Rostdan ham o'chirmoqchimisiz? Barcha shartnomalar ham o'chadi!"
+      )
+    )
+      return;
+    try {
+      const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchData();
+        alert("Mijoz o'chirildi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  // ========== SHARTNOMA CRUD ==========
+  const handleAddContract = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedCustomer?._id) return;
+
+    const formData = new FormData(e.currentTarget);
+    const startDate = new Date(formData.get("startDate") as string);
+    const months = Number(formData.get("months"));
+    const paymentDay = startDate.getDate(); // Boshlanish kunini olish
+
+    // nextPaymentDate = startDate + 1 oy, lekin kun bir xil
+    const nextPaymentDate = new Date(startDate);
+    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+
+    const contract = {
+      phoneModel: formData.get("phoneModel") as string,
+      price: Number(formData.get("price")),
+      downPayment: Number(formData.get("downPayment")),
+      monthlyPayment: Number(formData.get("monthlyPayment")),
+      months,
+      paymentDay,
+      startDate,
+      nextPaymentDate,
+      paidMonths: 0,
+      status: "active" as const,
+    };
+
+    try {
+      const res = await fetch(
+        `/api/customers/${selectedCustomer._id}/contracts`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contract),
+        }
+      );
+
+      if (res.ok) {
+        setShowAddContract(false);
+        setSelectedCustomer(null);
+        fetchData();
+        alert("Shartnoma yaratildi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  const handleEditContract = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedCustomer?._id || !selectedContract?._id) return;
+
+    const formData = new FormData(e.currentTarget);
+    const startDate = new Date(formData.get("startDate") as string);
+    const paidMonths = Number(formData.get("paidMonths"));
+    const months = Number(formData.get("months"));
+    const paymentDay = Number(formData.get("paymentDay"));
+
+    // Keyingi to'lov sanasini hisoblash
+    const nextPaymentDate = new Date(startDate);
+    nextPaymentDate.setMonth(startDate.getMonth() + paidMonths + 1);
+    nextPaymentDate.setDate(paymentDay);
+
+    // Statusni aniqlash
+    let status = formData.get("status") as "active" | "completed" | "cancelled";
+
+    // Agar barcha oylar to'langan bo'lsa, avtomatik "completed"
+    if (paidMonths >= months) {
+      status = "completed";
+    }
+
+    const contract = {
+      phoneModel: formData.get("phoneModel") as string,
+      price: Number(formData.get("price")),
+      downPayment: Number(formData.get("downPayment")),
+      monthlyPayment: Number(formData.get("monthlyPayment")),
+      months,
+      paymentDay,
+      startDate,
+      nextPaymentDate,
+      paidMonths,
+      status,
+    };
+
+    try {
+      const res = await fetch(
+        `/api/customers/${selectedCustomer._id}/contracts/${selectedContract._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contract),
+        }
+      );
+
+      if (res.ok) {
+        // Edit modalni yopish
+        setShowEditContract(false);
+        setSelectedContract(null);
+
+        // Ma'lumotlarni yangilash
+        await fetchData();
+
+        // selectedCustomer ni yangilash
+        const updatedCustomersRes = await fetch("/api/customers");
+        const updatedCustomersData = await updatedCustomersRes.json();
+
+        if (updatedCustomersData.success) {
+          const updatedCustomer = updatedCustomersData.data.find(
+            (c: ICustomer) => c._id === selectedCustomer._id
+          );
+          if (updatedCustomer) {
+            setSelectedCustomer(updatedCustomer);
+          }
+        }
+
+        alert("Shartnoma yangilandi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  const handleDeleteContract = async (
+    customerId: string,
+    contractId: string
+  ) => {
+    if (!confirm("Shartnomani o'chirmoqchimisiz?")) return;
+    try {
+      const res = await fetch(
+        `/api/customers/${customerId}/contracts/${contractId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (res.ok) {
+        fetchData();
+        setShowViewContracts(false);
+        alert("Shartnoma o'chirildi!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Xatolik yuz berdi!");
+    }
+  };
+
+  // ========== EMAIL YUBORISH ==========
+  const handleSendEmail = async (payment: ITodayPayment) => {
+    try {
+      const res = await fetch("/api/send-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerEmail: payment.email,
+          customerName: payment.customer,
+          phoneModel: payment.phoneModel,
+          amount: payment.amount,
+          paymentDate: new Date().toLocaleDateString("uz-UZ"),
+          customerId: payment.customerId,
+          contractId: payment.contractId,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Email muvaffaqiyatli yuborildi!");
+      } else {
+        alert("Email yuborishda xatolik!");
+      }
+    } catch (error) {
+      console.error("Xatolik:", error);
+      alert("Email yuborishda xatolik!");
+    }
+  };
+
+  // ========== FILTER ==========
+  const filteredPhones = phones.filter(
+    (p) =>
+      p.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredCustomers = customers.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.phone.includes(searchTerm) ||
+      c.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <Header />
+      <Navigation
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        setSearchTerm={setSearchTerm}
+      />
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {activeTab === "dashboard" && (
+          <Dashboard
+            stats={stats}
+            todayPayments={todayPayments}
+            handleSendEmail={handleSendEmail}
+          />
+        )}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+        {activeTab === "phones" && (
+          <PhonesTab
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filteredPhones={filteredPhones}
+            setShowAddPhone={setShowAddPhone}
+            setSelectedPhone={setSelectedPhone}
+            setShowEditPhone={setShowEditPhone}
+            handleDeletePhone={handleDeletePhone}
+          />
+        )}
+
+        {activeTab === "customers" && (
+          <CustomersTab
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filteredCustomers={filteredCustomers}
+            setShowAddCustomer={setShowAddCustomer}
+            setSelectedCustomer={setSelectedCustomer}
+            setShowViewContracts={setShowViewContracts}
+            setShowAddContract={setShowAddContract}
+            setShowEditCustomer={setShowEditCustomer}
+            handleDeleteCustomer={handleDeleteCustomer}
+          />
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* MODALS */}
+      <PhoneModal
+        show={showAddPhone}
+        onClose={() => setShowAddPhone(false)}
+        onSubmit={handleAddPhone}
+        mode="add"
+      />
+      <PhoneModal
+        show={showEditPhone}
+        onClose={() => {
+          setShowEditPhone(false);
+          setSelectedPhone(null);
+        }}
+        onSubmit={handleEditPhone}
+        phone={selectedPhone}
+        mode="edit"
+      />
+      <CustomerModal
+        show={showAddCustomer}
+        onClose={() => setShowAddCustomer(false)}
+        onSubmit={handleAddCustomer}
+        mode="add"
+      />
+      <CustomerModal
+        show={showEditCustomer}
+        onClose={() => {
+          setShowEditCustomer(false);
+          setSelectedCustomer(null);
+        }}
+        onSubmit={handleEditCustomer}
+        customer={selectedCustomer}
+        mode="edit"
+      />
+      <ContractModal
+        show={showAddContract}
+        onClose={() => {
+          setShowAddContract(false);
+          setSelectedCustomer(null);
+        }}
+        onSubmit={handleAddContract}
+        customer={selectedCustomer}
+        phones={phones}
+        mode="add"
+      />
+      <ContractModal
+        show={showEditContract}
+        onClose={() => {
+          setShowEditContract(false);
+          setSelectedContract(null);
+        }}
+        onSubmit={handleEditContract}
+        customer={selectedCustomer}
+        phones={phones}
+        contract={selectedContract}
+        mode="edit"
+      />
+      <ViewContractsModal
+        show={showViewContracts}
+        onClose={() => {
+          setShowViewContracts(false);
+          setSelectedCustomer(null);
+        }}
+        customer={selectedCustomer}
+        onEditContract={(contract) => {
+          setSelectedContract(contract);
+          setShowEditContract(true);
+          // ViewContractsModal ochiq qoladi
+        }}
+        onDeleteContract={handleDeleteContract}
+        fetchData={fetchData} // fetchData ni props qilib berish
+        setSelectedCustomer={setSelectedCustomer} // setSelectedCustomer ni props qilib berish
+      />
+
+      <ContractModal
+        show={showEditContract}
+        onClose={() => {
+          setShowEditContract(false);
+          setSelectedContract(null);
+        }}
+        onSubmit={handleEditContract}
+        customer={selectedCustomer}
+        phones={phones}
+        contract={selectedContract}
+        mode="edit"
+      />
     </div>
   );
 }
