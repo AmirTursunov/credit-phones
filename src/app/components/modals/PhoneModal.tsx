@@ -48,6 +48,7 @@ export default function PhoneModal({
             <label className="block text-sm font-medium mb-1">Xotira *</label>
             <input
               name="memory"
+              defaultValue={phone?.memory || ""}
               required
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="128GB"
