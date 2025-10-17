@@ -190,7 +190,7 @@ export default function ViewContractsModal({
                         ? new Date(contract.nextPaymentDate).toLocaleDateString(
                             "uz-UZ"
                           )
-                        : "To&apos;landi"}
+                        : "To'landi"}
                     </p>
                   </div>
                   <div>

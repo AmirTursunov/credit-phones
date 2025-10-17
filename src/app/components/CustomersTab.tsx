@@ -48,90 +48,95 @@ export default function CustomersTab({
       </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Mijoz
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Telefon
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Shartnomalar
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Amallar
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredCustomers.map((customer) => (
-              <tr key={customer._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="font-semibold text-black">{customer.name}</p>
-                    <p className="text-sm text-yellow-500">
-                      {customer.passport}
-                    </p>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-black">
-                  {customer.phone}
-                </td>
-                <td className="px-6 py-4 text-sm text-black">
-                  {customer.email}
-                </td>
-                <td className="px-6 py-4">
-                  <button
-                    onClick={() => {
-                      setSelectedCustomer(customer);
-                      setShowViewContracts(true);
-                    }}
-                    className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium hover:bg-green-200 flex items-center gap-1"
-                  >
-                    <Eye className="w-4 h-4" />
-                    {customer.contracts.length} ta
-                  </button>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedCustomer(customer);
-                        setShowAddContract(true);
-                      }}
-                      className="text-blue-500 hover:text-blue-700 text-sm font-medium"
-                      title="Shartnoma qo'shish"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedCustomer(customer);
-                        setShowEditCustomer(true);
-                      }}
-                      className="text-green-500 hover:text-green-700"
-                      title="Tahrirlash"
-                    >
-                      <Edit2 className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCustomer(customer._id!)}
-                      className="text-red-500 hover:text-red-700"
-                      title="O'chirish"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            {/* min-width qo‘shish scroll uchun */}
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Mijoz
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Telefon
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Shartnomalar
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Amallar
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredCustomers.map((customer) => (
+                <tr key={customer._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="font-semibold text-black">
+                        {customer.name}
+                      </p>
+                      <p className="text-sm text-yellow-500">
+                        {customer.passport}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-black">
+                    {customer.phone}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-black">
+                    {customer.email}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => {
+                        setSelectedCustomer(customer);
+                        setShowViewContracts(true);
+                      }}
+                      className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium hover:bg-green-200 flex items-center gap-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      {customer.contracts.length} ta
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedCustomer(customer);
+                          setShowAddContract(true);
+                        }}
+                        className="text-blue-500 hover:text-blue-700 text-sm font-medium"
+                        title="Shartnoma qo'shish"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedCustomer(customer);
+                          setShowEditCustomer(true);
+                        }}
+                        className="text-green-500 hover:text-green-700"
+                        title="Tahrirlash"
+                      >
+                        <Edit2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCustomer(customer._id!)}
+                        className="text-red-500 hover:text-red-700"
+                        title="O'chirish"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
