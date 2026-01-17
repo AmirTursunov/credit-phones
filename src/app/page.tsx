@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "./components/Header";
+// import Header from "./components/Header";
 import Navigation from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
 import PhonesTab from "./components/PhonesTab";
@@ -10,13 +10,21 @@ import PhoneModal from "./components/modals/PhoneModal";
 import CustomerModal from "./components/modals/CustomerModal";
 import ContractModal from "./components/modals/ContractModal";
 import ViewContractsModal from "./components/modals/ViewContractsModal";
-import { IPhone, ICustomer, IContract, ITodayPayment } from "./types";
+import AllPaymentsTab from "./components/AllPaymentsTab";
+import {
+  IPhone,
+  ICustomer,
+  IContract,
+  ITodayPayment,
+  IPaymentItem,
+} from "./types";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [phones, setPhones] = useState<IPhone[]>([]);
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [todayPayments, setTodayPayments] = useState<ITodayPayment[]>([]);
+  const [allPayments, setAllPayments] = useState<IPaymentItem[]>([]);
   const [stats, setStats] = useState({
     totalCustomers: 0,
     activeContracts: 0,
@@ -39,10 +47,10 @@ export default function HomePage() {
   // Selected items
   const [selectedPhone, setSelectedPhone] = useState<IPhone | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<ICustomer | null>(
-    null
+    null,
   );
   const [selectedContract, setSelectedContract] = useState<IContract | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -52,27 +60,75 @@ export default function HomePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [phonesRes, customersRes, paymentsRes, statsRes] =
-        await Promise.all([
-          fetch("/api/telefon"),
-          fetch("/api/customers"),
-          fetch("/api/payments/today"),
-          fetch("/api/stats"),
-        ]);
+      const [
+        phonesRes,
+        customersRes,
+        todayPaymentsRes,
+        statsRes,
+        allPaymentsRes,
+      ] = await Promise.all([
+        fetch("/api/telefon"),
+        fetch("/api/customers"),
+        fetch("/api/payments/today"),
+        fetch("/api/stats"),
+        fetch("/api/payments/all"), // yangi qo'shilgan — barcha to'lovlar
+      ]);
 
       const phonesData = await phonesRes.json();
       const customersData = await customersRes.json();
-      const paymentsData = await paymentsRes.json();
+      const todayPaymentsData = await todayPaymentsRes.json();
       const statsData = await statsRes.json();
+      const allPaymentsData = await allPaymentsRes.json();
 
-      if (phonesData.success) setPhones(phonesData.data);
-      if (customersData.success) setCustomers(customersData.data);
-      if (paymentsData.success) setTodayPayments(paymentsData.data);
-      if (statsData.success) setStats(statsData.data);
+      // Telefonlar
+      if (phonesData.success) {
+        setPhones(phonesData.data || []);
+      } else {
+        console.warn("Telefonlar yuklanmadi:", phonesData.error);
+      }
+
+      // Mijozlar
+      if (customersData.success) {
+        setCustomers(customersData.data || []);
+      } else {
+        console.warn("Mijozlar yuklanmadi:", customersData.error);
+      }
+
+      // Bugungi to'lovlar
+      if (todayPaymentsData.success) {
+        setTodayPayments(todayPaymentsData.data || []);
+      } else {
+        console.warn("Bugungi to'lovlar yuklanmadi:", todayPaymentsData.error);
+      }
+
+      // Statistika
+      if (statsData.success) {
+        setStats(
+          statsData.data || {
+            totalCustomers: 0,
+            activeContracts: 0,
+            totalRevenue: 0,
+            pendingPayments: 0,
+            totalPhones: 0,
+          },
+        );
+      } else {
+        console.warn("Statistika yuklanmadi:", statsData.error);
+      }
+
+      // Barcha to'lovlar (yangi tab uchun)
+      if (allPaymentsData.success) {
+        setAllPayments(allPaymentsData.data || []);
+      } else {
+        console.warn("Barcha to'lovlar yuklanmadi:", allPaymentsData.error);
+      }
     } catch (error) {
-      console.error("Ma'lumot yuklashda xatolik:", error);
+      console.error("Ma'lumot yuklashda umumiy xatolik:", error);
+      // ixtiyoriy: foydalanuvchiga xabar ko'rsatish
+      // alert("Ma'lumotlarni yuklashda xatolik yuz berdi. Iltimos, sahifani yangilang.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // ========== TELEFON CRUD ==========
@@ -216,7 +272,7 @@ export default function HomePage() {
   const handleDeleteCustomer = async (id: string) => {
     if (
       !confirm(
-        "Rostdan ham o'chirmoqchimisiz? Barcha shartnomalar ham o'chadi!"
+        "Rostdan ham o'chirmoqchimisiz? Barcha shartnomalar ham o'chadi!",
       )
     )
       return;
@@ -266,7 +322,7 @@ export default function HomePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(contract),
-        }
+        },
       );
 
       if (res.ok) {
@@ -324,7 +380,7 @@ export default function HomePage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(contract),
-        }
+        },
       );
 
       if (res.ok) {
@@ -341,7 +397,7 @@ export default function HomePage() {
 
         if (updatedCustomersData.success) {
           const updatedCustomer = updatedCustomersData.data.find(
-            (c: ICustomer) => c._id === selectedCustomer._id
+            (c: ICustomer) => c._id === selectedCustomer._id,
           );
           if (updatedCustomer) {
             setSelectedCustomer(updatedCustomer);
@@ -358,7 +414,7 @@ export default function HomePage() {
 
   const handleDeleteContract = async (
     customerId: string,
-    contractId: string
+    contractId: string,
   ) => {
     if (!confirm("Shartnomani o'chirmoqchimisiz?")) return;
     try {
@@ -366,7 +422,7 @@ export default function HomePage() {
         `/api/customers/${customerId}/contracts/${contractId}`,
         {
           method: "DELETE",
-        }
+        },
       );
       if (res.ok) {
         fetchData();
@@ -380,50 +436,85 @@ export default function HomePage() {
   };
 
   // ========== EMAIL YUBORISH ==========
-  const handleSendEmail = async (payment: ITodayPayment) => {
+  // const handleSendEmail = async (payment: ITodayPayment) => {
+  //   try {
+  //     const res = await fetch("/api/send-reminder", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         customerEmail: payment.email,
+  //         customerName: payment.customer,
+  //         phoneModel: payment.phoneModel,
+  //         amount: payment.amount,
+  //         paymentDate: new Date().toLocaleDateString("uz-UZ"),
+  //         customerId: payment.customerId,
+  //         contractId: payment.contractId,
+  //       }),
+  //     });
+  //     const data = await res.json();
+  //     if (data.success) {
+  //       alert("Email muvaffaqiyatli yuborildi!");
+  //     } else {
+  //       alert("Email yuborishda xatolik!");
+  //     }
+  //   } catch (error) {
+  //     console.error("Xatolik:", error);
+  //     alert("Email yuborishda xatolik!");
+  //   }
+  // };
+  const handleMarkAsPaid = async (payment: ITodayPayment) => {
+    if (!confirm("To'lov qabul qilingan deb belgilaysizmi?")) return;
+
     try {
-      const res = await fetch("/api/send-reminder", {
+      const res = await fetch(`/api/payments/mark-paid`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerEmail: payment.email,
-          customerName: payment.customer,
-          phoneModel: payment.phoneModel,
-          amount: payment.amount,
-          paymentDate: new Date().toLocaleDateString("uz-UZ"),
           customerId: payment.customerId,
           contractId: payment.contractId,
         }),
       });
+
       const data = await res.json();
+
       if (data.success) {
-        alert("Email muvaffaqiyatli yuborildi!");
+        // UI ni yangilash
+        setTodayPayments((prev) =>
+          prev.filter((p) => p.contractId !== payment.contractId),
+        );
+        // yoki to'liq refresh
+        // fetchData();
+        alert("To'lov qabul qilingan sifatida belgilandi!");
       } else {
-        alert("Email yuborishda xatolik!");
+        alert("Xatolik: " + (data.error || "Noma'lum xato"));
       }
-    } catch (error) {
-      console.error("Xatolik:", error);
-      alert("Email yuborishda xatolik!");
+    } catch (err) {
+      console.error(err);
+      alert("Server bilan bog'lanib bo'lmadi");
     }
   };
-
   // ========== FILTER ==========
   const filteredPhones = phones.filter(
     (p) =>
       p.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchTerm.toLowerCase())
+      p.brand.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
+  const filteredPayments = allPayments.filter(
+    (p) =>
+      p.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.phoneModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.phone.includes(searchTerm),
+  );
   const filteredCustomers = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.phone.includes(searchTerm) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase())
+      c.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Header />
+      {/* <Header /> */}
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -434,7 +525,7 @@ export default function HomePage() {
           <Dashboard
             stats={stats}
             todayPayments={todayPayments}
-            handleSendEmail={handleSendEmail}
+            handleMarkAsPaid={handleMarkAsPaid}
             loading={loading}
           />
         )}
@@ -462,6 +553,16 @@ export default function HomePage() {
             setShowAddContract={setShowAddContract}
             setShowEditCustomer={setShowEditCustomer}
             handleDeleteCustomer={handleDeleteCustomer}
+          />
+        )}
+        {activeTab === "payments" && (
+          <AllPaymentsTab
+            payments={allPayments}
+            loading={loading}
+            setSearchTerm={setSearchTerm}
+            searchTerm={searchTerm}
+            filteredPayments={filteredPayments}
+            // agar kerak bo'lsa searchTerm va boshqa props
           />
         )}
       </main>

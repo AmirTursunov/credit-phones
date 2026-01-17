@@ -54,3 +54,23 @@ export interface ITodayPayment {
   contractId: string;
   customerId: string;
 }
+export interface IPaymentItem {
+  _id?: string; // agar kerak bo'lsa
+  customer: string; // mijoz ismi
+  phone: string; // mijoz telefon raqami
+  email?: string;
+  phoneModel: string;
+  amount: number; // oylik to'lov summasi (so'mda)
+  dueDate: string; // ISO formatda: "2026-02-17"
+  status: "paid" | "pending" | "overdue";
+  contractId: string;
+  customerId: string;
+  // qo'shimcha bo'lsa (masalan overdue kunlari, comment va h.k.)
+  daysOverdue?: number; // ixtiyoriy
+}
+export interface AllPaymentsTabProps {
+  payments: IPaymentItem[];
+  loading: boolean;
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
+}

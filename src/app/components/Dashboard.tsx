@@ -5,7 +5,7 @@ import {
   Users,
   DollarSign,
   AlertCircle,
-  Mail,
+  Check,
 } from "lucide-react";
 import { ITodayPayment } from "../types";
 
@@ -18,14 +18,14 @@ interface DashboardProps {
     totalPhones: number;
   };
   todayPayments: ITodayPayment[];
-  handleSendEmail: (payment: ITodayPayment) => void;
+  handleMarkAsPaid: (payment: ITodayPayment) => void;
   loading?: boolean;
 }
-
+const today = new Date();
 export default function Dashboard({
   stats,
   todayPayments,
-  handleSendEmail,
+  handleMarkAsPaid,
   loading,
 }: DashboardProps) {
   if (loading) {
@@ -88,7 +88,8 @@ export default function Dashboard({
         <div className="flex items-center gap-2 mb-4">
           <AlertCircle className="w-6 h-6 text-red-500" />
           <h3 className="text-xl font-bold text-black">
-            Bugungi To&apos;lovlar ({todayPayments.length})
+            Bugungi To&apos;lovlar ({todayPayments.length}) -{" "}
+            {today.toLocaleDateString()}
           </h3>
         </div>
         {todayPayments.length > 0 ? (
@@ -113,11 +114,11 @@ export default function Dashboard({
                     {(payment.amount / 1000000).toFixed(1)}M so&apos;m
                   </p>
                   <button
-                    onClick={() => handleSendEmail(payment)}
-                    className="mt-2 flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                    onClick={() => handleMarkAsPaid(payment)}
+                    className="mt-2 flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
                   >
-                    <Mail className="w-4 h-4" />
-                    Email yuborish
+                    <Check className="w-4 h-4" />
+                    To&apos;lov Qabul Qilindi
                   </button>
                 </div>
               </div>

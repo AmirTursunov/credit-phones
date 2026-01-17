@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Phone, Users } from "lucide-react";
+import { Calendar, Phone, Users, ListChecks } from "lucide-react";
 
 interface NavigationProps {
   activeTab: string;
@@ -16,10 +16,11 @@ export default function Navigation({
     { id: "dashboard", label: "Bosh sahifa", icon: Calendar },
     { id: "phones", label: "Telefonlar", icon: Phone },
     { id: "customers", label: "Mijozlar", icon: Users },
+    { id: "payments", label: "To'lovlar", icon: ListChecks },
   ];
 
   return (
-    <nav className="bg-white shadow-sm mt-4">
+    <nav className="bg-white shadow-sm py-2">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex gap-1">
           {tabs.map((tab) => {
