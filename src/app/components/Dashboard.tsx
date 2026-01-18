@@ -118,7 +118,7 @@ export default function Dashboard({
                     className="mt-2 flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
                   >
                     <Check className="w-4 h-4" />
-                    To&apos;lov Qabul Qilindi
+                    To&apos;lovni qabul qilish
                   </button>
                 </div>
               </div>

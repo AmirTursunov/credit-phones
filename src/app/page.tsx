@@ -18,7 +18,12 @@ import {
   ITodayPayment,
   IPaymentItem,
 } from "./types";
-
+import ConfirmDeleteModal from "./components/modals/ConfirmDelete";
+type DeleteTarget =
+  | { type: "phone"; id: string }
+  | { type: "customer"; id: string }
+  | { type: "contract"; customerId: string; contractId: string }
+  | null;
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [phones, setPhones] = useState<IPhone[]>([]);
@@ -43,6 +48,8 @@ export default function HomePage() {
   const [showAddContract, setShowAddContract] = useState(false);
   const [showEditContract, setShowEditContract] = useState(false);
   const [showViewContracts, setShowViewContracts] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
   // Selected items
   const [selectedPhone, setSelectedPhone] = useState<IPhone | null>(null);
@@ -194,18 +201,8 @@ export default function HomePage() {
     }
   };
 
-  const handleDeletePhone = async (id: string) => {
-    if (!confirm("Rostdan ham o'chirmoqchimisiz?")) return;
-    try {
-      const res = await fetch(`/api/telefon/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        fetchData();
-        alert("Telefon o'chirildi!");
-      }
-    } catch (error) {
-      console.error("Xatolik:", error);
-      alert("Xatolik yuz berdi!");
-    }
+  const handleDeletePhone = (id: string) => {
+    openDeleteModal({ type: "phone", id });
   };
 
   // ========== MIJOZ CRUD ==========
@@ -511,7 +508,42 @@ export default function HomePage() {
       c.phone.includes(searchTerm) ||
       c.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+  const openDeleteModal = (target: DeleteTarget) => {
+    setDeleteTarget(target);
+    setShowDeleteModal(true);
+  };
 
+  const closeDeleteModal = () => {
+    setDeleteTarget(null);
+    setShowDeleteModal(false);
+  };
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      if (deleteTarget.type === "phone") {
+        await fetch(`/api/telefon/${deleteTarget.id}`, { method: "DELETE" });
+      }
+
+      if (deleteTarget.type === "customer") {
+        await fetch(`/api/customers/${deleteTarget.id}`, { method: "DELETE" });
+      }
+
+      if (deleteTarget.type === "contract") {
+        await fetch(
+          `/api/customers/${deleteTarget.customerId}/contracts/${deleteTarget.contractId}`,
+          { method: "DELETE" },
+        );
+      }
+
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+      alert("O‘chirishda xatolik yuz berdi");
+    } finally {
+      closeDeleteModal();
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* <Header /> */}
@@ -650,6 +682,12 @@ export default function HomePage() {
         phones={phones}
         contract={selectedContract}
         mode="edit"
+      />
+      <ConfirmDeleteModal
+        loading={loading}
+        show={showDeleteModal}
+        onClose={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
