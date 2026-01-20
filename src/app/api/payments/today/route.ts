@@ -55,7 +55,7 @@ export async function GET() {
       error instanceof Error ? error.message : "Noma’lum xatolik yuz berdi";
     return NextResponse.json(
       { success: false, error: errMsg },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

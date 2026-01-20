@@ -288,49 +288,111 @@ export default function HomePage() {
   // ========== SHARTNOMA CRUD ==========
   const handleAddContract = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedCustomer?._id) return;
+
+    if (!selectedCustomer?._id) {
+      alert("Mijoz tanlanmagan!");
+      return;
+    }
 
     const formData = new FormData(e.currentTarget);
-    const startDate = new Date(formData.get("startDate") as string);
-    const months = Number(formData.get("months"));
-    const paymentDay = startDate.getDate(); // Boshlanish kunini olish
 
-    // nextPaymentDate = startDate + 1 oy, lekin kun bir xil
-    const nextPaymentDate = new Date(startDate);
-    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
-
-    const contract = {
+    // Formdan ma'lumotlarni olish
+    const contractPayload = {
       phoneModel: formData.get("phoneModel") as string,
       price: Number(formData.get("price")),
       downPayment: Number(formData.get("downPayment")),
       monthlyPayment: Number(formData.get("monthlyPayment")),
-      months,
-      paymentDay,
-      startDate,
-      nextPaymentDate,
-      paidMonths: 0,
-      status: "active" as const,
+      months: Number(formData.get("months")),
+      paymentDay: Number(formData.get("paymentDay")),
+      startDate: formData.get("startDate") as string, // string sifatida yuboramiz
     };
 
+    // Majburiy fieldlarni tekshirish (frontendda ham qilish yaxshi)
+    if (!contractPayload.phoneModel) {
+      alert("Telefon modelini tanlang!");
+      return;
+    }
+    if (isNaN(contractPayload.price) || contractPayload.price <= 0) {
+      alert("To'g'ri narx kiriting!");
+      return;
+    }
+    if (isNaN(contractPayload.downPayment) || contractPayload.downPayment < 0) {
+      alert("Boshlang'ich to'lovni to'g'ri kiriting!");
+      return;
+    }
+    if (
+      isNaN(contractPayload.monthlyPayment) ||
+      contractPayload.monthlyPayment <= 0
+    ) {
+      alert("Oylik to'lovni to'g'ri kiriting!");
+      return;
+    }
+    if (isNaN(contractPayload.months) || contractPayload.months < 1) {
+      alert("Muddati kamida 1 oy bo'lishi kerak!");
+      return;
+    }
+    if (
+      isNaN(contractPayload.paymentDay) ||
+      contractPayload.paymentDay < 1 ||
+      contractPayload.paymentDay > 28
+    ) {
+      alert("To'lov kuni 1-28 oralig'ida bo'lishi kerak!");
+      return;
+    }
+    if (!contractPayload.startDate) {
+      alert("Boshlash sanasini tanlang!");
+      return;
+    }
+
     try {
+      console.log("Shartnoma yuborilmoqda:", contractPayload);
+
       const res = await fetch(
         `/api/customers/${selectedCustomer._id}/contracts`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(contract),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(contractPayload),
         },
       );
 
-      if (res.ok) {
-        setShowAddContract(false);
-        setSelectedCustomer(null);
-        fetchData();
-        alert("Shartnoma yaratildi!");
+      console.log("Javob statusi:", res.status, res.ok);
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        const text = await res.text();
+        console.error("Javob JSON emas:", text);
+        throw new Error(
+          `Serverdan noto'g'ri javob keldi: ${res.status} - ${text}`,
+        );
       }
-    } catch (error) {
-      console.error("Xatolik:", error);
-      alert("Xatolik yuz berdi!");
+
+      if (!res.ok || !data.success) {
+        console.error("Server xatosi:", data);
+        alert(data?.error || `Xatolik yuz berdi (status: ${res.status})`);
+        return;
+      }
+
+      // Muvaffaqiyat
+      setShowAddContract(false);
+      setSelectedCustomer(null); // modalni tozalash
+      await fetchData(); // telefonlar, mijozlar va stats yangilanadi
+
+      alert(
+        "Shartnoma muvaffaqiyatli qo'shildi! Telefon omboridan 1 ta kamaydi.",
+      );
+    } catch (error: any) {
+      console.error("handleAddContract xatosi:", error);
+      alert(
+        error.message?.includes("JSON")
+          ? "Serverdan noto'g'ri javob keldi. Backendni tekshiring."
+          : error.message ||
+              "Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
+      );
     }
   };
 
@@ -460,12 +522,31 @@ export default function HomePage() {
   //   }
   // };
   const handleMarkAsPaid = async (payment: ITodayPayment) => {
-    if (!confirm("To'lov qabul qilingan deb belgilaysizmi?")) return;
+    if (!confirm("To'lov qabul qilingan deb belgilaysizmi?")) {
+      return;
+    }
+
+    // 1. Optimistik yangilash – foydalanuvchi darhol natijani ko'radi
+    const originalTodayPayments = todayPayments; // backup
+    const originalStats = stats; // backup
+
+    setTodayPayments((prev) =>
+      prev.filter((p) => p.contractId !== payment.contractId),
+    );
+
+    setStats((prev) => ({
+      ...prev,
+      totalRevenue: prev.totalRevenue + payment.amount,
+      // agar pendingPayments ni ham kamaytirmoqchi bo'lsangiz:
+      // pendingPayments: prev.pendingPayments - payment.amount,
+    }));
 
     try {
-      const res = await fetch(`/api/payments/mark-paid`, {
+      const res = await fetch("/api/payments/mark-paid", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           customerId: payment.customerId,
           contractId: payment.contractId,
@@ -474,20 +555,26 @@ export default function HomePage() {
 
       const data = await res.json();
 
-      if (data.success) {
-        // UI ni yangilash
-        setTodayPayments((prev) =>
-          prev.filter((p) => p.contractId !== payment.contractId),
-        );
-        // yoki to'liq refresh
-        // fetchData();
-        alert("To'lov qabul qilingan sifatida belgilandi!");
-      } else {
-        alert("Xatolik: " + (data.error || "Noma'lum xato"));
+      if (!data.success) {
+        throw new Error(data.error || "To'lovni belgilashda xatolik");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Server bilan bog'lanib bo'lmadi");
+
+      // Muvaffaqiyatli bo'lsa → serverdan yangi ma'lumotlarni yuklaymiz
+      await fetchData(); // bu yerda bugungi to'lovlar, stats va boshqalar yangilanadi
+
+      alert("To'lov qabul qilingan sifatida belgilandi!");
+    } catch (error) {
+      console.error("To'lovni qayd etishda xatolik:", error);
+
+      // Xatolik bo'lsa → optimistik o'zgarishlarni qaytarib olamiz
+      setTodayPayments(originalTodayPayments);
+      setStats(originalStats);
+
+      alert(
+        error instanceof Error
+          ? `Xatolik: ${error.message}`
+          : "To'lovni belgilashda xatolik yuz berdi",
+      );
     }
   };
   // ========== FILTER ==========

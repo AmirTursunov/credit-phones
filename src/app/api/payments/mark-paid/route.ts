@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "../../../lib/mongodb";
 import Customer from "../../../models/Customer";
+import mongoose from "mongoose";
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +16,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      !mongoose.Types.ObjectId.isValid(customerId) ||
+      !mongoose.Types.ObjectId.isValid(contractId)
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Noto'g'ri ID formati" },
+        { status: 400 },
+      );
+    }
+
     const customer = await Customer.findById(customerId);
     if (!customer) {
       return NextResponse.json(
@@ -24,8 +35,9 @@ export async function POST(request: Request) {
     }
 
     const contract = customer.contracts.find(
-      (c) => c._id && c._id.toString() === contractId,
+      (c: any) => c._id.toString() === contractId,
     );
+
     if (!contract) {
       return NextResponse.json(
         { success: false, error: "Shartnoma topilmadi" },
@@ -40,16 +52,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Asosiy o'zgarishlar
+    // To'lovni qayd etish
     contract.paidMonths += 1;
 
     // Keyingi to'lov sanasini hisoblash
-    const nextDate = new Date(contract.startDate);
-    nextDate.setMonth(nextDate.getMonth() + contract.paidMonths);
-    nextDate.setDate(contract.paymentDay);
-    contract.nextPaymentDate = nextDate;
+    const currentNext = new Date(contract.nextPaymentDate);
+    currentNext.setMonth(currentNext.getMonth() + 1);
+    currentNext.setDate(contract.paymentDay);
+    currentNext.setHours(0, 0, 0, 0); // juda muhim!
+    currentNext.setMinutes(0);
+    currentNext.setSeconds(0);
+    currentNext.setMilliseconds(0);
 
-    // Agar hammasi to'langan bo'lsa
+    contract.nextPaymentDate = currentNext;
+
+    // Agar to'liq to'langan bo'lsa
     if (contract.paidMonths >= contract.months) {
       contract.status = "completed";
     }
@@ -58,7 +75,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error(error);
+    console.error("mark-paid xatosi:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Server xatosi" },
       { status: 500 },

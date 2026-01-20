@@ -1,6 +1,6 @@
 import { Search, Plus, Edit2, Trash2 } from "lucide-react";
 import { IPhone } from "../types";
-import MouseEffectCard from "@/components/kokonutui/mouse-effect-card";
+
 interface PhonesTabProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -43,67 +43,99 @@ export default function PhonesTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredPhones.map((phone) => (
-          <div
-            key={phone._id}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-bold text-black text-lg">
-                  {phone.model}
-                  {phone.memory && (
-                    <span className="text-gray-500 text-sm ml-1">
-                      ({phone.memory} GB)
-                    </span>
-                  )}
-                </h3>
-                <p className="text-black text-sm">{phone.brand}</p>
+        {filteredPhones.map((phone) => {
+          const isOutOfStock = phone.stock === 0;
+
+          return (
+            <div
+              key={phone._id}
+              className={`
+                bg-white rounded-lg shadow-md p-6 transition-all duration-200 relative
+                ${isOutOfStock ? "opacity-70 bg-gray-50" : "hover:shadow-lg hover:border-blue-200"}
+              `}
+            >
+              {/* Badge faqat stock 0 bo'lsa chiqadi */}
+
+              {/* Kontent */}
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-bold text-black text-lg">
+                    {phone.model}
+                    {phone.memory && (
+                      <span className="text-gray-500 text-sm ml-1">
+                        ({phone.memory} GB)
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-black text-sm">{phone.brand}</p>
+                </div>
+
+                {/* Edit va Delete tugmalari DOIM faol */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedPhone(phone);
+                      setShowEditPhone(true);
+                    }}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="Tahrirlash (stockni o'zgartirish mumkin)"
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeletePhone(phone._id!)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title="O'chirish"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedPhone(phone);
-                    setShowEditPhone(true);
-                  }}
-                  className="p-2 text-blue-500 hover:bg-blue-50 rounded"
-                  title="Tahrirlash"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDeletePhone(phone._id!)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded"
-                  title="O'chirish"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
+              <div className="space-y-3 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">Narxi:</span>
+                  <span className="font-semibold text-gray-900">
+                    {(phone.price / 1000000).toLocaleString("uz-UZ", {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    })}{" "}
+                    mln so'm
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">Omborda:</span>
+                  <span
+                    className={`font-semibold text-base ${
+                      isOutOfStock
+                        ? "text-red-600"
+                        : phone.stock <= 3
+                          ? "text-orange-600"
+                          : "text-green-600"
+                    }`}
+                  >
+                    {phone.stock === 0 ? (
+                      <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-full border border-red-200">
+                        Hozircha mavjud emas
+                      </span>
+                    ) : (
+                      <span
+                        className={`font-semibold text-base ${
+                          phone.stock <= 3
+                            ? "text-orange-600"
+                            : "text-green-600"
+                        }`}
+                      >
+                        {phone.stock} ta
+                      </span>
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-black">Narxi:</span>
-                <span className="font-semibold text-black">
-                  {(phone.price / 1000000).toLocaleString("uz-UZ", {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1,
-                  })}{" "}
-                  mln so&apos;m
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Omborda:</span>
-                <span
-                  className={`font-semibold ${
-                    phone.stock < 5 ? "text-red-500" : "text-green-500"
-                  }`}
-                >
-                  {phone.stock} ta
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

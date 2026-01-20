@@ -59,11 +59,13 @@ export default function ContractModal({
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-black"
             >
               <option value="">Tanlang</option>
-              {phones.map((phone) => (
-                <option key={phone._id} value={phone.model}>
-                  {phone.model} ({phone.brand})
-                </option>
-              ))}
+              {phones
+                .filter((p) => p.stock > 0) // faqat omborda borlari
+                .map((phone) => (
+                  <option key={phone._id} value={phone.model}>
+                    {phone.model} ({phone.brand}) – {phone.stock} ta mavjud
+                  </option>
+                ))}
             </select>
           </div>
 
