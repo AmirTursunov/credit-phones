@@ -18,7 +18,15 @@ export default function PhoneModal({
   mode,
 }: PhoneModalProps) {
   if (!show) return null;
-
+  const BRANDS = [
+    "Apple",
+    "Samsung",
+    "Xiaomi",
+    "Huawei",
+    "Oppo",
+    "Vivo",
+    "Realme",
+  ];
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -56,13 +64,22 @@ export default function PhoneModal({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Brend *</label>
-            <input
+            <select
               name="brand"
               defaultValue={phone?.brand || ""}
               required
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Apple"
-            />
+              className="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="" disabled>
+                Brendni tanlang
+              </option>
+
+              {BRANDS.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
